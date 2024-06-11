@@ -11,7 +11,7 @@ def create_table(conn, table_name):
         high REAL NOT NULL,
         low REAL NOT NULL,
         close REAL NOT NULL,
-        timestamp DATETIME NOT NULL,
+        timestamp TEXT NOT NULL,
         value TEXT NOT NULL,
         symbol TEXT NOT NULL,
         FOREIGN KEY (symbol) REFERENCES cryptocurrencies (symbol)
