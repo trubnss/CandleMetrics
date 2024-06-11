@@ -21,7 +21,6 @@
   </component>
   <component name="DBNavigator.Project.DatabaseFileManager">
     <open-files>
-      <object connection-id="65cc40d7-b292-4729-9f8a-75710221761c" object-ref="schemas/main/tables/cryptocurrencies" />
       <object connection-id="65cc40d7-b292-4729-9f8a-75710221761c" object-ref="schemas/main/tables/d1" />
       <object connection-id="65cc40d7-b292-4729-9f8a-75710221761c" object-ref="schemas/main/tables/h1" />
     </open-files>
