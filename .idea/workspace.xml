@@ -5,12 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="58608b10-75e6-48fc-b00d-10e89cc1f8a2" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/dbnavigator.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/database.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../test_task/.idea/.gitignore" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../test_task/.idea/dbnavigator.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../test_task/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
