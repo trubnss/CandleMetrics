@@ -4,6 +4,10 @@
 Проект CandleMetrics представляет собой API для работы с криптовалютными свечами и финансовыми индикаторами. API позволяет получать данные о свечах котировок криптовалютных пар с биржи Binance, а также рассчитывать различные индикаторы, такие как EMA (Exponential Moving Average) и RSI (Relative Strength Index).
 
 ## Установка и запуск
+Что бы склонировать проект, выполните следующую команду 
+```bash
+git clone git@github.com:trubnss/CandleMetrics.git
+```
 1. Установите зависимости, выполнив `pip install -r requirements.txt`.
 2. Запустите сервер, выполнив `python main.py`.
 3. По умолчанию, API будет доступно по адресу `http://localhost:8000`.
