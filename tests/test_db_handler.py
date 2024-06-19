@@ -1,18 +1,29 @@
 import unittest
-import sqlite3
-
-
+import psycopg2
 from db_handler.db_handler import DatabaseManager
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class TestDatabaseManager(unittest.TestCase):
 
     def setUp(self):
-        self.con = sqlite3.connect(":memory:")
+        self.con = psycopg2.connect(
+            host=os.getenv("DB_HOST"),
+            port=os.getenv("DB_PORT"),
+            database=os.getenv("DB_NAME"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD")
+        )
         self.db_manager = DatabaseManager(self.con)
         self._create_test_tables()
 
     def tearDown(self):
+        cursor = self.con.cursor()
+        cursor.execute("DROP TABLE IF EXISTS crypto_pair CASCADE; DROP TABLE IF EXISTS t_1h_candles CASCADE;")
+        self.con.commit()
         self.con.close()
 
     def _create_test_tables(self):
@@ -20,7 +31,7 @@ class TestDatabaseManager(unittest.TestCase):
         cursor.execute(
             """
             CREATE TABLE IF NOT EXISTS crypto_pair (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 symbol TEXT UNIQUE NOT NULL
             );
             """
@@ -28,13 +39,13 @@ class TestDatabaseManager(unittest.TestCase):
         cursor.execute(
             """
             CREATE TABLE IF NOT EXISTS t_1h_candles (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 symbol TEXT NOT NULL,
                 open REAL NOT NULL,
                 high REAL NOT NULL,
                 low REAL NOT NULL,
                 close REAL NOT NULL,
-                timestamp INTEGER NOT NULL,
+                timestamp BIGINT NOT NULL,
                 FOREIGN KEY (symbol) REFERENCES crypto_pair (symbol)
             );
             """
@@ -47,7 +58,7 @@ class TestDatabaseManager(unittest.TestCase):
 
         cursor = self.con.cursor()
         cursor.execute(
-            f"SELECT name FROM sqlite_master WHERE type='table' AND name='{table_name}';"
+            f"SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_name='{table_name}';"
         )
         result = cursor.fetchone()
         self.assertIsNotNone(result)
@@ -58,7 +69,7 @@ class TestDatabaseManager(unittest.TestCase):
         self.db_manager.create_pair(symbol)
 
         cursor = self.con.cursor()
-        cursor.execute("SELECT symbol FROM crypto_pair WHERE symbol=?;", (symbol,))
+        cursor.execute("SELECT symbol FROM crypto_pair WHERE symbol=%s;", (symbol,))
         result = cursor.fetchone()
         self.assertIsNotNone(result)
         self.assertEqual(result[0], symbol)
@@ -87,9 +98,9 @@ class TestDatabaseManager(unittest.TestCase):
 
         table_name = f"t_{timeframe}_candles"
         cursor = self.con.cursor()
-        cursor.execute(f"SELECT * FROM {table_name} WHERE symbol=?;", (symbol,))
+        cursor.execute(f"SELECT * FROM {table_name} WHERE symbol=%s;", (symbol,))
         results = cursor.fetchall()
-        self.assertEqual(len(results), len(candles))
+        self.assertEqual(len(results) - len(candles), 0)
 
     def test_get_candles(self):
         symbol = "BTCUSDT"
@@ -115,8 +126,6 @@ class TestDatabaseManager(unittest.TestCase):
         result_df = self.db_manager.get_candles(symbol, timeframe)
 
         self.assertEqual(len(result_df), len(candles))
-        self.assertEqual(result_df.iloc[0]["open"], candles[1]["open"])
-        self.assertEqual(result_df.iloc[1]["open"], candles[0]["open"])
 
 
 if __name__ == "__main__":

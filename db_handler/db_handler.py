@@ -11,9 +11,11 @@ class DatabaseManager:
     def __init__(self, db_connection=None):
         self.con = db_connection or psycopg2.connect(
             host=os.getenv("DB_HOST"),
+            port=os.getenv("DB_PORT"),
             database=os.getenv("DB_NAME"),
             user=os.getenv("DB_USER"),
             password=os.getenv("DB_PASSWORD")
+
         )
 
     def create_table(self, table_name):
@@ -76,6 +78,7 @@ class DatabaseManager:
                     candle["timestamp"],
                 ),
             )
+
         self.con.commit()
 
     def get_candles(self, symbol, timeframe):
