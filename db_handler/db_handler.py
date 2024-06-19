@@ -1,12 +1,13 @@
 import sqlite3
-
-import pandas
+import pandas as pd
 
 
 class DatabaseManager:
+    def __init__(self, db_connection=None):
+        self.con = db_connection or sqlite3.connect("../db.sqlite")
+
     def create_table(self, table_name):
-        con = sqlite3.connect("../db.sqlite")
-        cursor = con.cursor()
+        cursor = self.con.cursor()
         create_query = f"""
         CREATE TABLE IF NOT EXISTS {table_name} (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -20,34 +21,28 @@ class DatabaseManager:
         )
         """
         cursor.execute(create_query)
-        con.commit()
-        con.close()
+        self.con.commit()
 
     def create_pair(self, symbol):
-        con = sqlite3.connect("../db.sqlite")
-        cursor = con.cursor()
+        cursor = self.con.cursor()
         create_query = """
         CREATE TABLE IF NOT EXISTS crypto_pair(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             symbol TEXT NOT NULL UNIQUE
         )
         """
-
         cursor.execute(create_query)
         cursor.execute(
             "INSERT OR IGNORE INTO crypto_pair (symbol) VALUES (?)", (symbol,)
         )
-        con.commit()
-        con.close()
+        self.con.commit()
 
     def store_candles(self, symbol, timeframe, candles):
         table_name = f"t_{timeframe}_candles"
         self.create_pair(symbol)
         self.create_table(table_name)
 
-        con = sqlite3.connect("../db.sqlite")
-        cursor = con.cursor()
-
+        cursor = self.con.cursor()
         insert_query = f"""
         INSERT INTO {table_name} (
             symbol,
@@ -59,7 +54,6 @@ class DatabaseManager:
         )
         VALUES (?, ?, ?, ?, ?, ?)
         """
-
         for candle in candles:
             cursor.execute(
                 insert_query,
@@ -72,13 +66,10 @@ class DatabaseManager:
                     candle["timestamp"],
                 ),
             )
-
-        con.commit()
-        con.close()
+        self.con.commit()
 
     def get_candles(self, symbol, timeframe):
         table_name = f"t_{timeframe}_candles"
-        con = sqlite3.connect("../db.sqlite")
         get_query = f"""
         SELECT open, high, low, close, timestamp
         FROM {table_name}
@@ -86,7 +77,5 @@ class DatabaseManager:
         ORDER BY timestamp DESC
         LIMIT 100
         """
-
-        data_frame = pandas.read_sql(get_query, con, params=(symbol,))
-        con.close()
+        data_frame = pd.read_sql(get_query, self.con, params=(symbol,))
         return data_frame

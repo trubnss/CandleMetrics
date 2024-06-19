@@ -35,6 +35,7 @@ class BinanceAPIHandler:
         return candles
 
     def download_candles(self, symbol, interval, limit=100):
+        # download_candles нужен если использовать библиотеку binance-api
         candles = self.client.get_klines(symbol=symbol, interval=interval, limit=limit)
 
         formatted_candles = [
