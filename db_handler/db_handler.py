@@ -1,23 +1,33 @@
-import sqlite3
+import os
+import psycopg2
 import pandas as pd
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class DatabaseManager:
     def __init__(self, db_connection=None):
-        self.con = db_connection or sqlite3.connect("../db.sqlite")
+        self.con = db_connection or psycopg2.connect(
+            host=os.getenv("DB_HOST"),
+            database=os.getenv("DB_NAME"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD")
+        )
 
     def create_table(self, table_name):
         cursor = self.con.cursor()
         create_query = f"""
         CREATE TABLE IF NOT EXISTS {table_name} (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             symbol TEXT NOT NULL,
             open REAL NOT NULL,
             high REAL NOT NULL,
             low REAL NOT NULL,
             close REAL NOT NULL,
-            timestamp INTEGER NOT NULL,
-            FOREIGN KEY (symbol) REFERENCES cryptocurrencies (symbol)
+            timestamp BIGINT NOT NULL,
+            FOREIGN KEY (symbol) REFERENCES crypto_pair (symbol)
         )
         """
         cursor.execute(create_query)
@@ -27,13 +37,13 @@ class DatabaseManager:
         cursor = self.con.cursor()
         create_query = """
         CREATE TABLE IF NOT EXISTS crypto_pair(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             symbol TEXT NOT NULL UNIQUE
         )
         """
         cursor.execute(create_query)
         cursor.execute(
-            "INSERT OR IGNORE INTO crypto_pair (symbol) VALUES (?)", (symbol,)
+            "INSERT INTO crypto_pair (symbol) VALUES (%s) ON CONFLICT DO NOTHING", (symbol,)
         )
         self.con.commit()
 
@@ -52,7 +62,7 @@ class DatabaseManager:
             close,
             timestamp
         )
-        VALUES (?, ?, ?, ?, ?, ?)
+        VALUES (%s, %s, %s, %s, %s, %s)
         """
         for candle in candles:
             cursor.execute(
@@ -73,7 +83,7 @@ class DatabaseManager:
         get_query = f"""
         SELECT open, high, low, close, timestamp
         FROM {table_name}
-        WHERE symbol = ?
+        WHERE symbol = %s
         ORDER BY timestamp DESC
         LIMIT 100
         """
