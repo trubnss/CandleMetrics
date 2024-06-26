@@ -1,8 +1,17 @@
+import pandas as pd
 import pandas_ta
 
 
 class IndicatorCalculator:
-    def calculate_indicator(self, data_frame, indicator, period):
+    def calculate_indicator(self, data_frame: pd.DataFrame, indicator: str, period: int) -> pd.DataFrame:
+        """
+        Вычисляет указанный индикатор для переданных данных.
+
+        :param data_frame: DataFrame, содержащий данные свечей.
+        :param indicator: Название индикатора, который необходимо вычислить (например, 'EMA', 'RSI').
+        :param period: Период, используемый для вычисления индикатора.
+        :return: DataFrame с добавленным столбцом индикатора.
+        """
         if indicator == "EMA":
             data_frame["indicator"] = pandas_ta.ema(data_frame["close"], length=period)
         elif indicator == "RSI":

@@ -7,6 +7,9 @@ from db_handler.db_handler import DatabaseManager
 
 
 class CandleResource:
+    """
+    Ресурс для работы с свечами, поддерживающий получение свечей с Binance, их хранение и расчёт индикаторов.
+    """
     CRYPTO_PAIRS = [
         "ETHUSDT",
         "LTCUSDT",
@@ -30,7 +33,7 @@ class CandleResource:
         self.indicator_calculator = IndicatorCalculator()
         self.db_manager = DatabaseManager()
 
-    def on_get(self, req, resp):
+    def on_get(self, req: falcon.Request, resp: falcon.Response) -> None:
         symbol = req.get_param("symbol")
         timeframe = req.get_param("timeframe")
         indicator = req.get_param("indicator")

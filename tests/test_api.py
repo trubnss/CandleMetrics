@@ -24,6 +24,7 @@ class TestCandleResource(unittest.TestCase):
 
         resp = falcon.Response()
 
+
         CandleResource().on_get(req, resp)
 
         self.assertEqual(resp.status, '200 OK')
