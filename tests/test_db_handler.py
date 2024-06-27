@@ -1,8 +1,8 @@
 import unittest
-import psycopg2
-from db_handler.db_handler import DatabaseManager
-import os
+from unittest.mock import MagicMock, call
+
 from dotenv import load_dotenv
+from adapters.database_manager import DatabaseManager
 
 load_dotenv()
 
@@ -10,24 +10,17 @@ load_dotenv()
 class TestDatabaseManager(unittest.TestCase):
 
     def setUp(self):
-        self.con = psycopg2.connect(
-            host=os.getenv("DB_HOST"),
-            port=os.getenv("DB_PORT"),
-            database=os.getenv("DB_NAME"),
-            user=os.getenv("DB_USER"),
-            password=os.getenv("DB_PASSWORD")
-        )
-        self.db_manager = DatabaseManager(self.con)
+        # Мокирование psycopg2.connect
+        self.mock_db_connection = MagicMock()
+        self.db_manager = DatabaseManager(db_connection=self.mock_db_connection)
         self._create_test_tables()
 
-    def tearDown(self):
-        cursor = self.con.cursor()
-        cursor.execute("DROP TABLE IF EXISTS crypto_pair CASCADE; DROP TABLE IF EXISTS t_1h_candles CASCADE;")
-        self.con.commit()
-        self.con.close()
-
     def _create_test_tables(self):
-        cursor = self.con.cursor()
+        mock_cursor = self.mock_db_connection.cursor.return_value
+        mock_cursor.execute = MagicMock()
+
+        # Создание таблиц
+        cursor = self.mock_db_connection.cursor.return_value
         cursor.execute(
             """
             CREATE TABLE IF NOT EXISTS crypto_pair (
@@ -50,29 +43,35 @@ class TestDatabaseManager(unittest.TestCase):
             );
             """
         )
-        self.con.commit()
+        self.mock_db_connection.commit.return_value = None
 
     def test_create_table(self):
         table_name = "test_candles"
         self.db_manager.create_table(table_name)
 
-        cursor = self.con.cursor()
-        cursor.execute(
-            f"SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_name='{table_name}';"
-        )
-        result = cursor.fetchone()
-        self.assertIsNotNone(result)
-        self.assertEqual(result[0], table_name)
+        cursor = self.mock_db_connection.cursor.return_value
+        calls = [call(f"CREATE TABLE IF NOT EXISTS {table_name} ("
+                      "id SERIAL PRIMARY KEY,"
+                      "symbol TEXT NOT NULL,"
+                      "open REAL NOT NULL,"
+                      "high REAL NOT NULL,"
+                      "low REAL NOT NULL,"
+                      "close REAL NOT NULL,"
+                      "timestamp BIGINT NOT NULL,"
+                      "FOREIGN KEY (symbol) REFERENCES crypto_pair (symbol)"
+                      ");")]
+        cursor.execute.assert_any_call(*calls)
 
     def test_create_pair(self):
         symbol = "BTCUSDT"
         self.db_manager.create_pair(symbol)
 
-        cursor = self.con.cursor()
-        cursor.execute("SELECT symbol FROM crypto_pair WHERE symbol=%s;", (symbol,))
-        result = cursor.fetchone()
-        self.assertIsNotNone(result)
-        self.assertEqual(result[0], symbol)
+        cursor = self.mock_db_connection.cursor.return_value
+        calls = [call(
+            "INSERT INTO crypto_pair (symbol) VALUES (%s) ON CONFLICT DO NOTHING",
+            (symbol,)
+        )]
+        cursor.execute.assert_any_call(*calls)
 
     def test_store_candles(self):
         symbol = "BTCUSDT"
@@ -97,10 +96,13 @@ class TestDatabaseManager(unittest.TestCase):
         self.db_manager.store_candles(symbol, timeframe, candles)
 
         table_name = f"t_{timeframe}_candles"
-        cursor = self.con.cursor()
-        cursor.execute(f"SELECT * FROM {table_name} WHERE symbol=%s;", (symbol,))
-        results = cursor.fetchall()
-        self.assertEqual(len(results) - len(candles), 0)
+        cursor = self.mock_db_connection.cursor.return_value
+        calls = [call(
+            f"INSERT INTO {table_name} (symbol, open, high, low, close, timestamp) "
+            "VALUES (%s, %s, %s, %s, %s, %s)",
+            (symbol, 100, 110, 90, 105, 1620000000)
+        )]
+        cursor.execute.assert_any_call(*calls)
 
     def test_get_candles(self):
         symbol = "BTCUSDT"

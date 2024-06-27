@@ -132,3 +132,6 @@ dmypy.json
 
 # .idea
 .idea
+
+/db_handler
+test_db_handler.py

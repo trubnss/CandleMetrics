@@ -1,12 +1,12 @@
 import unittest
-from unittest.mock import patch
 
+from unittest.mock import patch
 from binance_handler.binance_handler import BinanceAPIHandler
 
 
 class TestBinanceAPIHandler(unittest.TestCase):
 
-    @patch('binance_api_handler.requests.get')
+    @patch('binance_handler.binance_handler.requests.get')
     def test_receive_candles(self, mock_get):
         sample_response = [
             [
