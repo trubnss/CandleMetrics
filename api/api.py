@@ -1,14 +1,14 @@
 import falcon
 import json
 
-from binance_handler.binance_handler import BinanceAPIHandler
-from calculate_indicators.calculate_indicators import IndicatorCalculator
-from db_handler.db_handler import DatabaseManager
+from adapters.database_manager import DatabaseManager
+from core.calculate_indicators import IndicatorCalculator
+from ports.binance_port import BinancePort
 
 
 class CandleResource:
     """
-    Ресурс для работы с свечами, поддерживающий получение свечей с Binance, их хранение и расчёт индикаторов.
+    Ресурс для работы со свечами, поддерживающий получение свечей с Binance, их хранение и расчёт индикаторов.
     """
     CRYPTO_PAIRS = [
         "ETHUSDT",
@@ -28,10 +28,10 @@ class CandleResource:
         "RSI",
     ]
 
-    def __init__(self):
-        self.binance_handler = BinanceAPIHandler()
-        self.indicator_calculator = IndicatorCalculator()
-        self.db_manager = DatabaseManager()
+    def __init__(self, binance_handler: BinancePort, db_manager: DatabaseManager):
+        self.binance_handler = binance_handler
+        self.db_manager = db_manager
+        self.indicator_calculator = IndicatorCalculator(self.db_manager)
 
     def on_get(self, req: falcon.Request, resp: falcon.Response) -> None:
         symbol = req.get_param("symbol")
@@ -97,7 +97,7 @@ class CandleResource:
         try:
             result = candles_with_indicator.iloc[
                 candle_number
-            ].to_dict()  # Формирование отвента из dataframe в dict
+            ].to_dict()  # Формирование ответа из dataframe в dict
         except IndexError:
             raise falcon.HTTPBadRequest(
                 title="Недопустимый номер свечи",
@@ -108,6 +108,8 @@ class CandleResource:
         resp.status = falcon.HTTP_200
 
 
-app = falcon.App()
-candle_resource = CandleResource()
-app.add_route("/candles", candle_resource)
+def create_app(binance_handler, db_manager):
+    app = falcon.App()
+    candle_resource = CandleResource(binance_handler, db_manager)
+    app.add_route("/candles", candle_resource)
+    return app

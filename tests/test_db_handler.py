@@ -50,6 +50,8 @@ class TestDatabaseManager(unittest.TestCase):
         self.db_manager.create_table(table_name)
 
         cursor = self.mock_db_connection.cursor.return_value
+
+
         calls = [call(f"CREATE TABLE IF NOT EXISTS {table_name} ("
                       "id SERIAL PRIMARY KEY,"
                       "symbol TEXT NOT NULL,"

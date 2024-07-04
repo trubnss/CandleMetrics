@@ -135,3 +135,4 @@ dmypy.json
 
 /db_handler
 test_db_handler.py
+/binance_handler/

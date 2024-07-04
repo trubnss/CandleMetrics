@@ -5,7 +5,7 @@ from ports.db_port import DatabasePort
 
 
 class IndicatorCalculator:
-    def __init__(self, database_port:DatabasePort):
+    def __init__(self, database_port: DatabasePort):
         self.database_port = database_port
 
     def calculate_indicator(self, data_frame: pd.DataFrame, indicator: str, period: int) -> pd.DataFrame:

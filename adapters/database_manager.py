@@ -43,7 +43,7 @@ class DatabaseManager(DatabasePort):
             symbol TEXT NOT NULL UNIQUE
         )
         """
-        cursor.execute()
+        cursor.execute(create_query)
         cursor.execute(
             "INSERT INTO crypto_pair (symbol) VALUES (%s) ON CONFLICT DO NOTHING", (symbol,)
         )

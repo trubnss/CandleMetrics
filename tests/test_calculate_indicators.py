@@ -1,6 +1,6 @@
 import unittest
 import pandas as pd
-from calculate_indicators.calculate_indicators import IndicatorCalculator
+from core.calculate_indicators import IndicatorCalculator
 
 
 class TestIndicatorCalculator(unittest.TestCase):
